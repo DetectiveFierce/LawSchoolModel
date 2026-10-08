@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Estimating Your Probability of Dismissal</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  html { background: white; color: #111; }
+  body {
+    max-width: 730px;
+    margin: 0 auto;
+    padding: 47px 42px 70px;
+    font-family: "Times New Roman", Times, "Liberation Serif", serif;
+    font-size: 12pt;
+    line-height: 1.48;
+  }
+  h1 {
+    font-size: 17pt;
+    font-weight: bold;
+    line-height: 1.24;
+    text-align: center;
+    margin: 0 0 26px;
+  }
+  h2 { font-size: 12pt; font-weight: bold; margin: 26px 0 9px; }
+  p { margin: 0 0 12px; text-align: justify; }
+  hr { border: 0; border-top: 1px solid #222; margin: 19px 0; }
+  .equation { margin: 16px 0 20px; padding: 0; text-align: center; overflow-x: auto; }
+  math { font-size: 1.05em; }
+  .demo { margin: 0; padding: 0; }
+  .readout { margin: 0 0 19px; font-size: 12pt; }
+  .readout .metric {
+    display: inline;
+    font-size: 13pt;
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+    margin-left: 6px;
+  }
+  .control { margin: 0 0 19px; }
+  .control-line { display: flex; gap: 15px; align-items: baseline; justify-content: space-between; margin: 0 0 7px; }
+  label { font-size: 11.5pt; line-height: 1.32; }
+  output { font-size: 11.5pt; font-weight: normal; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  input[type="range"] {
+    display: block;
+    width: 100%;
+    height: 23px;
+    margin: 0;
+    background: transparent;
+    border-radius: 0;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input[type="range"]::-webkit-slider-runnable-track { height: 2px; background: #333; border-radius: 0; }
+  input[type="range"]::-moz-range-track { height: 2px; background: #333; border-radius: 0; }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 17px;
+    border: 1px solid #111;
+    background: #fff;
+    border-radius: 0;
+    margin-top: -7px;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 12px;
+    height: 17px;
+    border: 1px solid #111;
+    background: #fff;
+    border-radius: 0;
+  }
+  input[type="range"]:focus-visible { outline: 1px dotted #111; outline-offset: 3px; }
+  .ends { display: flex; justify-content: space-between; gap: 12px; color: #333; font-size: 9.5pt; }
+  .explanation { font-size: 11pt; margin: 0; text-align: left; }
+  .table-wrap { width: 100%; overflow-x: auto; margin: 16px 0 11px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    border-top: 1px solid #111;
+    border-bottom: 1px solid #111;
+    font-size: 10.5pt;
+    font-variant-numeric: tabular-nums;
+  }
+  th, td { text-align: right; padding: 7px 7px; white-space: nowrap; }
+  th { font-weight: bold; border-bottom: 1px solid #111; }
+  th:first-child, td:first-child { text-align: left; padding-left: 0; }
+  th:last-child, td:last-child { padding-right: 0; }
+  ul { margin: 0 0 12px; padding-left: 19px; }
+  li { margin-bottom: 6px; }
+  .fineprint { font-size: 10.5pt; }
+  @media (max-width: 520px) {
+    body { padding: 27px 18px 45px; font-size: 11.5pt; line-height: 1.43; }
+    h1 { font-size: 16pt; margin-bottom: 20px; }
+    h2 { font-size: 11.5pt; }
+    p { text-align: left; }
+    .readout { font-size: 11.5pt; }
+    .readout .metric { font-size: 12.5pt; }
+    label, output { font-size: 11pt; }
+    .control-line { gap: 11px; }
+    .ends { font-size: 9pt; }
+    .explanation { font-size: 10.5pt; }
+    table { font-size: 10pt; }
+    th, td { padding: 6px 4px; }
+    .equation { font-size: 0.91em; }
+    input[type="range"]::-webkit-slider-thumb { width: 15px; height: 20px; margin-top: -9px; }
+    input[type="range"]::-moz-range-thumb { width: 15px; height: 20px; }
+  }
+  @media print {
+    body { max-width: none; padding: 0; font-size: 11pt; }
+    h1 { font-size: 16pt; }
+    h2 { font-size: 11pt; }
+    .demo { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Estimating Your Probability of Dismissal</h1>
+  <p>Suppose your law school has <strong>150 students</strong>, and the lowest-performing 15 (10%) are dismissed at the end of the year. Without further information about your standing, your probability of dismissal is</p>
+  <div class="equation"><math display="block" aria-label="Probability of dismissal equals 15 over 150, or 10 percent"><mi>P</mi><mo>(</mo><mtext>Dismissal</mtext><mo>)</mo><mo>=</mo><mfrac><mn>15</mn><mn>150</mn></mfrac><mo>=</mo><mn>10</mn><mo>%</mo></math></div>
+  <p>Now suppose you know a sample of classmates and feel confident you'll outperform some of them. <strong>Bayes' theorem</strong> lets us estimate your dismissal probability from the size of your sample, the number of favorable judgments you make, and their reliability.</p>
+
+  <hr>
+  <section class="demo" aria-label="Interactive probability estimate">
+    <div class="readout" aria-live="polite">
+      <span>Estimated probability of dismissal:</span>
+      <strong class="metric" id="riskValue">—</strong>
+    </div>
+    <div class="control">
+      <div class="control-line"><label for="sampleSlider">How many of the students in your cohort do you know?</label><output for="sampleSlider" id="sampleValue">25</output></div>
+      <input id="sampleSlider" type="range" min="0" max="149" step="1" value="25">
+      <div class="ends"><span>0</span><span>149</span></div>
+    </div>
+    <div class="control">
+      <div class="control-line"><label for="positiveSlider">How many of them are you confident that you will out perform?</label><output for="positiveSlider" id="positiveValue">5</output></div>
+      <input id="positiveSlider" type="range" min="0" max="25" step="1" value="6">
+      <div class="ends"><span>0</span><span id="positiveMaxLabel">25</span></div>
+    </div>
+    <div class="control">
+      <div class="control-line"><label for="pSlider">How confident are you that you will out perform them?</label><output for="pSlider" id="pValue">85%</output></div>
+      <input id="pSlider" type="range" min="50" max="95" step="5" value="85">
+      <div class="ends"><span>50% — no predictive accuracy</span><span>95% — highly reliable</span></div>
+    </div>
+    <p class="explanation" id="interpretation" aria-live="polite"></p>
+  </section>
+  <hr>
+
+  <p>The table gives estimated dismissal probabilities at three prediction accuracies. In several examples, the risk remains low even when you confidently expect to outperform fewer than half the classmates you know.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Expect to outperform</th><th>80%</th><th>90%</th><th>95%</th></tr></thead>
+    <tbody id="scenarioRows"></tbody>
+  </table></div>
+  <p class="fineprint">Very small probabilities use scientific notation. You need to finish ahead of 15 classmates to avoid dismissal—not ahead of a majority.</p>
+
+  <h2>The mathematical model</h2>
+  <p>Let <em>B</em> be the number of classmates you actually outperform, <em>m</em> the number you assess, and <em>K</em> the number you judge you will outperform. Initially, every rank is equally likely, so <em>B</em> is uniformly distributed from 0 to 149. Dismissal means <em>B</em> ≤ 14.</p>
+  <p>Among the <em>m</em> sampled classmates, let <em>J</em> be the number you truly outperform. For each classmate, you make a confident prediction in either direction with probability <em>q</em> = 0.5. When you make a prediction, it is correct with probability <em>p</em>. Comparisons without a confident prediction are left unresolved.</p>
+  <div class="equation"><math display="block" aria-label="J given B equals b has hypergeometric distribution with population 149, successes b, draws m">
+    <mi>J</mi><mo>|</mo><mi>B</mi><mo>=</mo><mi>b</mi><mo>∼</mo><mi mathvariant="normal">Hypergeom</mi><mo>(</mo><mn>149</mn><mo>,</mo><mi>b</mi><mo>,</mo><mi>m</mi><mo>)</mo>
+  </math></div>
+  <div class="equation"><math display="block" aria-label="K given J equals j is the sum of two independent binomial random variables with probabilities q times p and q times one minus p">
+    <mi>K</mi><mo>|</mo><mi>J</mi><mo>=</mo><mi>j</mi><mo>∼</mo><mi mathvariant="normal">Bin</mi><mo>(</mo><mi>j</mi><mo>,</mo><mi>q</mi><mi>p</mi><mo>)</mo><mo>+</mo><mi mathvariant="normal">Bin</mi><mo>(</mo><mi>m</mi><mo>−</mo><mi>j</mi><mo>,</mo><mi>q</mi><mo>(</mo><mn>1</mn><mo>−</mo><mi>p</mi><mo>)</mo><mo>)</mo>
+  </math></div>
+  <p>Writing <em>L<sub>b</sub> = P(K = k | B = b, m, p, q)</em>, Bayes' theorem gives</p>
+  <div class="equation"><math display="block" aria-label="Probability of dismissal given m k p and q equals sum of L b for b from zero to fourteen divided by sum of L b for b from zero to one hundred forty nine">
+    <mi>P</mi><mo>(</mo><mi>D</mi><mo>|</mo><mi>m</mi><mo>,</mo><mi>k</mi><mo>,</mo><mi>p</mi><mo>,</mo><mi>q</mi><mo>)</mo><mo>=</mo>
+    <mfrac>
+      <mrow><munderover><mo>∑</mo><mrow><mi>b</mi><mo>=</mo><mn>0</mn></mrow><mn>14</mn></munderover><msub><mi>L</mi><mi>b</mi></msub></mrow>
+      <mrow><munderover><mo>∑</mo><mrow><mi>b</mi><mo>=</mo><mn>0</mn></mrow><mn>149</mn></munderover><msub><mi>L</mi><mi>b</mi></msub></mrow>
+    </mfrac>
+  </math></div>
+
+  <h2>Assumptions and limitations</h2>
+  <ul>
+    <li><strong>Prior rankings:</strong> Before considering your comparisons, each possible class rank is equally likely.</li>
+    <li><strong>Representative sample:</strong> The classmates you know are modeled as a random sample of the other 149 students.</li>
+    <li><strong>Judgments:</strong> For each classmate, you make a confident prediction about who will do better with probability <em>q</em> = 0.5, independently of the true ranking. Each prediction is correct with probability <em>p</em>, regardless of its direction. Otherwise, you remain uncertain.</li>
+    <li><strong>Independence:</strong> Prediction and uncertainty outcomes are independent across classmates, conditional on their true rankings.</li>
+    <li><strong>Fixed threshold:</strong> Exactly 15 of 150 students are dismissed, with no ties.</li>
+  </ul>
+  <p class="fineprint">These are illustrative model estimates, not a calibrated personal forecast. The stated accuracy <em>p</em> should reflect how reliably your predictions correspond to final rankings, rather than confidence alone.</p>
+</main>
+<script>
+(function () {
+  'use strict';
+  const sampleSlider = document.getElementById('sampleSlider');
+  const positiveSlider = document.getElementById('positiveSlider');
+  const pSlider = document.getElementById('pSlider');
+
+  // Binomial PMFs for n = 0,...,maxN, calculated recursively and stably.
+  function binomialTables(maxN, prob) {
+    const tables = [[1]];
+    for (let n = 1; n <= maxN; n++) {
+      const prev = tables[n - 1];
+      const current = new Array(n + 1);
+      for (let k = 0; k <= n; k++) {
+        current[k] = (k < n ? prev[k] * (1 - prob) : 0)
+          + (k > 0 ? prev[k - 1] * prob : 0);
+      }
+      tables.push(current);
+    }
+    return tables;
+  }
+
+  // Under a uniform prior on relative rank, J (true outperformances in a
+  // random sample of m) is uniform on {0,...,m}. Given J=j, the remaining
+  // 149-m comparisons have a beta-binomial predictive distribution.
+  function dismissalGivenJ(m, j) {
+    if (j >= 15) return 0;
+    const unseen = 149 - m;
+    const cap = Math.min(unseen, 14 - j);
+    const alpha = j + 1, beta = m - j + 1;
+    let probability = 1;
+    for (let t = 0; t < unseen; t++) probability *= (beta + t) / (alpha + beta + t);
+    let cdf = probability;
+    for (let r = 0; r < cap; r++) {
+      probability *= ((unseen - r) * (r + alpha)) / ((r + 1) * (unseen - r - 1 + beta));
+      cdf += probability;
+    }
+    return Math.min(1, cdf);
+  }
+
+  function dismissalRisk(m, k, p) {
+    const q = 0.5;
+    const yes = binomialTables(m, q * p);
+    const no = binomialTables(m, q * (1 - p));
+    let weightedDismissals = 0, totalLikelihood = 0;
+    for (let j = 0; j <= m; j++) {
+      let likelihood = 0;
+      const lower = Math.max(0, k - (m - j));
+      const upper = Math.min(j, k);
+      for (let t = lower; t <= upper; t++) {
+        likelihood += yes[j][t] * no[m - j][k - t];
+      }
+      totalLikelihood += likelihood;
+      if (j <= 14) weightedDismissals += likelihood * dismissalGivenJ(m, j);
+    }
+    return weightedDismissals / totalLikelihood;
+  }
+
+  function formatRisk(r) {
+    const percent = r * 100;
+    if (percent > 99.999999) return '>99.999999%';
+    if (percent >= 1) return percent.toFixed(2) + '%';
+    if (percent >= 0.01) return percent.toFixed(3) + '%';
+    if (percent >= 0.0001) return percent.toFixed(5) + '%';
+    return percent.toExponential(2) + '%';
+  }
+
+  function update() {
+    const m = Number(sampleSlider.value);
+    const k = Math.min(m, Number(positiveSlider.value));
+    const p = Number(pSlider.value) / 100;
+    positiveSlider.max = String(m);
+    positiveSlider.value = String(k);
+    document.getElementById('sampleValue').textContent = String(m);
+    document.getElementById('positiveValue').textContent = String(k);
+    document.getElementById('positiveMaxLabel').textContent = String(m);
+    document.getElementById('pValue').textContent = Math.round(p * 100) + '%';
+    const probability = dismissalRisk(m, k, p);
+    const shown = formatRisk(probability);
+    document.getElementById('riskValue').textContent = shown;
+    document.getElementById('interpretation').textContent =
+      'If the ' + m + ' classmates you know are representative, and you expect to outperform ' + k +
+      ' of them, ' + Math.round(p * 100) + '% prediction accuracy gives an estimated dismissal probability of ' +
+      shown + ', assuming confident predictions are made for half of comparisons on average (compared with 10% initially).';
+  }
+
+  // Illustrative ratios decrease; show the actual risk at each accuracy.
+  function formatTableRisk(r) {
+    return formatRisk(r);
+  }
+  for (const [m, k] of [[5, 3], [10, 4], [15, 5], [20, 6], [30, 8], [40, 10], [90, 20], [149, 30]]) {
+    const row = document.createElement('tr');
+    const ratio = Math.round(1000 * k / m) / 10;
+    const cells = [k + ' of ' + m + ' (' + ratio.toFixed(1).replace(/\.0$/, '') + '%)',
+      ...[0.8, 0.9, 0.95].map(p => formatTableRisk(dismissalRisk(m, k, p)))];
+    for (const cell of cells) {
+      const td = document.createElement('td');
+      td.textContent = cell;
+      row.appendChild(td);
+    }
+    document.getElementById('scenarioRows').appendChild(row);
+  }
+
+  sampleSlider.addEventListener('input', update);
+  positiveSlider.addEventListener('input', update);
+  pSlider.addEventListener('input', update);
+  update();
+})();
+</script>
+</body>
+</html>
